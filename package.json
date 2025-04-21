@@ -1,0 +1,19 @@
+{
+  "name": "hangman-game",
+  "version": "1.0.0",
+  "description": "A simple hangman game implemented with HTML, CSS, JavaScript, and Node.js.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mongoose": "^8.13.2",
+    "socket.io": "^4.8.1"
+  },
+  "author": "",
+  "license": "ISC"
+}

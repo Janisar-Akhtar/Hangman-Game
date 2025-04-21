@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LPU Interactive Campus Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    header {
+      background-color: #800000;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    #controls {
+      text-align: center;
+      margin: 1rem auto;
+    }
+    #searchBar {
+      padding: 0.5rem;
+      width: 300px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #map {
+      height: 85vh;
+      width: 100%;
+      border-radius: 12px;
+      margin: 1rem auto;
+      max-width: 1200px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .marker-popup {
+      font-size: 14px;
+    }
+    .marker-popup img {
+      width: 100%;
+      max-width: 200px;
+      border-radius: 8px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Interactive LPU Indoor Campus Map</h1>
+</header>
+
+<div id="controls">
+  <input type="text" id="searchBar" placeholder="Search for a place... 🔍">
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  var map = L.map('map').setView([31.2554, 75.7050], 17);
+
+  var southWest = L.latLng(31.2525, 75.7025);
+  var northEast = L.latLng(31.2575, 75.7075);
+  var bounds = L.latLngBounds(southWest, northEast);
+  map.setMaxBounds(bounds);
+  map.on('drag', function() {
+    map.panInsideBounds(bounds, { animate: false });
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 20,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  var markers = [];
+
+  var places = [
+    { name: "Admission Block", lat: 31.2545, lng: 75.7055, image: "https://your-image-link.com/admission.jpg", description: "This is where all admission processes are handled." },
+    { name: "UniMall", lat: 31.2559, lng: 75.7062, image: "https://your-image-link.com/unimall.jpg", description: "LPU's mall with shops, cafes, and more." },
+    { name: "Block 38 (CSE Block)", lat: 31.2547, lng: 75.7048, image: "https://your-image-link.com/block38.jpg", description: "Computer Science and Engineering department." },
+    { name: "Research & Development Block", lat: 31.2561, lng: 75.7058, image: "https://your-image-link.com/research.jpg", description: "Research block where innovations and faculty projects are conducted." },
+    { name: "Library", lat: 31.2550, lng: 75.7060, image: "https://your-image-link.com/library.jpg", description: "Central library for students and faculty." },
+    { name: "Auditorium", lat: 31.2542, lng: 75.7053, image: "https://your-image-link.com/auditorium.jpg", description: "Large hall for events and seminars." },
+    { name: "Boys Hostel", lat: 31.2537, lng: 75.7045, image: "https://your-image-link.com/boys_hostel.jpg", description: "Accommodation for male students." },
+    { name: "Girls Hostel", lat: 31.2565, lng: 75.7065, image: "https://your-image-link.com/girls_hostel.jpg", description: "Accommodation for female students." },
+    { name: "Cafeteria", lat: 31.2549, lng: 75.7057, image: "https://your-image-link.com/cafe.jpg", description: "Place for food and refreshment." },
+    { name: "Hospital", lat: 31.2568, lng: 75.7052, image: "https://your-image-link.com/hospital.jpg", description: "On-campus medical facility." },
+    { name: "Watch Room", lat: 31.2535, lng: 75.7038, image: "https://your-image-link.com/watchroom.jpg", description: "Security and surveillance office." },
+    { name: "Admin Block", lat: 31.2552, lng: 75.7059, image: "https://your-image-link.com/admin.jpg", description: "Main administrative block of LPU." },
+    { name: "Engineering Block", lat: 31.2556, lng: 75.7047, image: "https://your-image-link.com/engineering.jpg", description: "Faculty of engineering and labs." }
+  ];
+
+  places.forEach(place => {
+    var marker = L.marker([place.lat, place.lng]).addTo(map);
+    marker.bindPopup(`
+      <div class="marker-popup">
+        <strong>${place.name}</strong><br>
+        <img src="${place.image}" alt="${place.name}"><br>
+        ${place.description}
+      </div>
+    `);
+    marker.placeName = place.name.toLowerCase();
+    markers.push(marker);
+  });
+
+  // Real-time user tracking
+  var userMarker;
+  var accuracyCircle;
+
+  function onLocationFound(e) {
+    var radius = e.accuracy;
+    if (userMarker) {
+      map.removeLayer(userMarker);
+      map.removeLayer(accuracyCircle);
+    }
+    userMarker = L.marker(e.latlng, {icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', iconSize: [25, 25] })}).addTo(map).bindPopup("You are here").openPopup();
+    accuracyCircle = L.circle(e.latlng, radius, {
+      color: 'blue',
+      fillColor: '#30f',
+      fillOpacity: 0.2
+    }).addTo(map);
+  }
+
+  function onLocationError(e) {
+    alert(e.message);
+  }
+
+  map.on('locationfound', onLocationFound);
+  map.on('locationerror', onLocationError);
+
+  map.locate({setView: true, maxZoom: 18, watch: true});
+
+  // Search feature
+  const searchBar = document.getElementById("searchBar");
+  searchBar.addEventListener("input", function() {
+    const searchTerm = searchBar.value.toLowerCase();
+    markers.forEach(marker => {
+      if (marker.placeName.includes(searchTerm)) {
+        marker.addTo(map);
+      } else {
+        map.removeLayer(marker);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
